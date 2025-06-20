@@ -1,0 +1,97 @@
+2025-06-16 10:20:08,372 tdgpd INFO: Using 0 GPUs
+2025-06-16 10:20:08,372 tdgpd INFO: Namespace(config_file='./config.py', opts=[])
+2025-06-16 10:20:08,372 tdgpd INFO: Loaded configuration file ./config.py
+2025-06-16 10:20:08,373 tdgpd INFO: Running with config:
+AUTO_RESUME: True
+DATA:
+  GPD_IN_CHANNELS: 3
+  NUM_CLOSE_REGION_POINTS: 1024
+  NUM_POINTS: 25600
+  NUM_REMOVAL_DIRECTIONS: 5
+  NUM_WORKERS: 1
+  SCORE_CLASSES: 3
+  STD_R: 0.1
+  STD_T: 0.02
+  TEST:
+    NUM_GRASP: 300
+    ROOT_DIR: 
+  TRAIN:
+    ROOT_DIR: 
+  TYPE: Scene
+  VAL:
+    NUM_GRASP: 300
+    ROOT_DIR: 
+MODEL:
+  EDGEPN2D:
+    DROPOUT_PROB: 0.5
+    FP_CHANNELS: ((256, 256), (256, 128), (128, 128), (64, 64, 64))
+    LABEL_SMOOTHING: 0.0
+    NEG_WEIGHT: 1.0
+    NUM_CENTROIDS: (10240, 1024, 128, 0)
+    NUM_FP_NEIGHBOURS: (0, 3, 3, 3)
+    NUM_NEIGHBOURS: (64, 64, 64, -1)
+    RADIUS: (0.2, 0.3, 0.4, -1.0)
+    SA_CHANNELS: ((32, 32, 64), (64, 64, 128), (128, 128, 256), (256, 512, 1024))
+    SEG_CHANNELS: (128,)
+  EDGEPN2DU:
+    DROPOUT_PROB: 0.5
+    FP_CHANNELS: ((256, 256), (256, 128), (128, 128), (64, 64, 64))
+    LABEL_SMOOTHING: 0.0
+    NEG_WEIGHT: 1.0
+    NUM_CENTROIDS: (10240, 1024, 128, 0)
+    NUM_FP_NEIGHBOURS: (0, 3, 3, 3)
+    NUM_NEIGHBOURS: (64, 64, 64, -1)
+    RADIUS: (0.2, 0.3, 0.4, -1.0)
+    SA_CHANNELS: ((32, 32, 64), (64, 64, 128), (128, 128, 256), (256, 512, 1024))
+    SEG_CHANNELS: (128,)
+  GPD:
+    DROPOUT: False
+  PN2:
+    DROPOUT_PROB: 0.5
+    FP_CHANNELS: ((256, 256), (256, 128), (128, 128), (64, 64, 64))
+    LABEL_SMOOTHING: 0.0
+    NEG_WEIGHT: 1.0
+    NUM_CENTROIDS: (10240, 1024, 128, 0)
+    NUM_FP_NEIGHBOURS: (0, 3, 3, 3)
+    NUM_NEIGHBOURS: (64, 64, 64, -1)
+    RADIUS: (0.2, 0.3, 0.4, -1.0)
+    SA_CHANNELS: ((32, 32, 64), (64, 64, 128), (128, 128, 256), (256, 512, 1024))
+    SEG_CHANNELS: (128,)
+  TYPE: 
+  WEIGHT: 
+OUTPUT_DIR: @
+RNG_SEED: 1
+SCHEDULER:
+  MAX_EPOCH: 2
+  MultiStepLR:
+    gamma: 0.1
+    milestones: ()
+  StepLR:
+    gamma: 0.1
+    step_size: 0
+  TYPE: 
+SOLVER:
+  Adam:
+    betas: (0.9, 0.999)
+  BASE_LR: 0.001
+  RMSprop:
+    alpha: 0.9
+  SGD:
+    momentum: 0.9
+  TYPE: Adam
+  WEIGHT_DECAY: 0.0
+TEST:
+  AUGMENTATION: ()
+  BATCH_SIZE: 1
+  FILE_LOG_PERIOD: 1000
+  LOG_PERIOD: 10
+  TOPK: 10
+  WEIGHT: 
+TRAIN:
+  AUGMENTATION: ()
+  BATCH_SIZE: 1
+  CHECKPOINT_PERIOD: 1
+  FILE_LOG_PERIOD: 1000
+  LOG_PERIOD: 10
+  VAL_METRIC: cls_acc
+  VAL_PERIOD: 1

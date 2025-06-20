@@ -1,0 +1,292 @@
+2025-06-16 15:07:11,111 tdgpd INFO: Using 1 GPUs
+2025-06-16 15:07:11,111 tdgpd INFO: Namespace(config_file='./config.py', opts=[])
+2025-06-16 15:07:11,111 tdgpd INFO: Loaded configuration file ./config.py
+2025-06-16 15:07:11,112 tdgpd INFO: Running with config:
+AUTO_RESUME: True
+DATA:
+  GPD_IN_CHANNELS: 3
+  NUM_CLOSE_REGION_POINTS: 1024
+  NUM_POINTS: 25600
+  NUM_REMOVAL_DIRECTIONS: 5
+  NUM_WORKERS: 1
+  SCORE_CLASSES: 3
+  STD_R: 0.1
+  STD_T: 0.02
+  TEST:
+    NUM_GRASP: 300
+    ROOT_DIR: 
+  TRAIN:
+    ROOT_DIR: 
+  TYPE: Scene
+  VAL:
+    NUM_GRASP: 300
+    ROOT_DIR: 
+MODEL:
+  EDGEPN2D:
+    DROPOUT_PROB: 0.5
+    FP_CHANNELS: ((256, 256), (256, 128), (128, 128), (64, 64, 64))
+    LABEL_SMOOTHING: 0.0
+    NEG_WEIGHT: 1.0
+    NUM_CENTROIDS: (10240, 1024, 128, 0)
+    NUM_FP_NEIGHBOURS: (0, 3, 3, 3)
+    NUM_NEIGHBOURS: (64, 64, 64, -1)
+    RADIUS: (0.2, 0.3, 0.4, -1.0)
+    SA_CHANNELS: ((32, 32, 64), (64, 64, 128), (128, 128, 256), (256, 512, 1024))
+    SEG_CHANNELS: (128,)
+  EDGEPN2DU:
+    DROPOUT_PROB: 0.5
+    FP_CHANNELS: ((256, 256), (256, 128), (128, 128), (64, 64, 64))
+    LABEL_SMOOTHING: 0.0
+    NEG_WEIGHT: 1.0
+    NUM_CENTROIDS: (10240, 1024, 128, 0)
+    NUM_FP_NEIGHBOURS: (0, 3, 3, 3)
+    NUM_NEIGHBOURS: (64, 64, 64, -1)
+    RADIUS: (0.2, 0.3, 0.4, -1.0)
+    SA_CHANNELS: ((32, 32, 64), (64, 64, 128), (128, 128, 256), (256, 512, 1024))
+    SEG_CHANNELS: (128,)
+  GPD:
+    DROPOUT: False
+  PN2:
+    DROPOUT_PROB: 0.5
+    FP_CHANNELS: ((256, 256), (256, 128), (128, 128), (64, 64, 64))
+    LABEL_SMOOTHING: 0.0
+    NEG_WEIGHT: 1.0
+    NUM_CENTROIDS: (10240, 1024, 128, 0)
+    NUM_FP_NEIGHBOURS: (0, 3, 3, 3)
+    NUM_NEIGHBOURS: (64, 64, 64, -1)
+    RADIUS: (0.2, 0.3, 0.4, -1.0)
+    SA_CHANNELS: ((32, 32, 64), (64, 64, 128), (128, 128, 256), (256, 512, 1024))
+    SEG_CHANNELS: (128,)
+  TYPE: PN2
+  WEIGHT: 
+OUTPUT_DIR: @
+RNG_SEED: 1
+SCHEDULER:
+  MAX_EPOCH: 2
+  MultiStepLR:
+    gamma: 0.1
+    milestones: ()
+  StepLR:
+    gamma: 0.1
+    step_size: 0
+  TYPE: StepLR
+SOLVER:
+  Adam:
+    betas: (0.9, 0.999)
+  BASE_LR: 0.001
+  RMSprop:
+    alpha: 0.9
+  SGD:
+    momentum: 0.9
+  TYPE: Adam
+  WEIGHT_DECAY: 0.0
+TEST:
+  AUGMENTATION: ()
+  BATCH_SIZE: 1
+  FILE_LOG_PERIOD: 1000
+  LOG_PERIOD: 10
+  TOPK: 10
+  WEIGHT: 
+TRAIN:
+  AUGMENTATION: ()
+  BATCH_SIZE: 1
+  CHECKPOINT_PERIOD: 1
+  FILE_LOG_PERIOD: 1000
+  LOG_PERIOD: 10
+  VAL_METRIC: cls_acc
+  VAL_PERIOD: 1
+2025-06-16 15:07:11,147 tdgpd.trainer INFO: Build model:
+PointNet2(
+  (sa_modules): ModuleList(
+    (0): PointNetSAModule(
+      num_centroids=10240, use_xyz=True
+      (mlp): SharedMLP(
+        (0): Conv2d(
+          (conv): Conv2d(3, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (1): Conv2d(
+          (conv): Conv2d(32, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (2): Conv2d(
+          (conv): Conv2d(32, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+      )
+      (sampler): FarthestPointSampler(num_centroids=10240)
+      (grouper): QueryGrouper(radius=0.2, num_neighbours=64)
+    )
+    (1): PointNetSAModule(
+      num_centroids=1024, use_xyz=True
+      (mlp): SharedMLP(
+        (0): Conv2d(
+          (conv): Conv2d(67, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (1): Conv2d(
+          (conv): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (2): Conv2d(
+          (conv): Conv2d(64, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+      )
+      (sampler): FarthestPointSampler(num_centroids=1024)
+      (grouper): QueryGrouper(radius=0.3, num_neighbours=64)
+    )
+    (2): PointNetSAModule(
+      num_centroids=128, use_xyz=True
+      (mlp): SharedMLP(
+        (0): Conv2d(
+          (conv): Conv2d(131, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (1): Conv2d(
+          (conv): Conv2d(128, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (2): Conv2d(
+          (conv): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+      )
+      (sampler): FarthestPointSampler(num_centroids=128)
+      (grouper): QueryGrouper(radius=0.4, num_neighbours=64)
+    )
+    (3): PointNetSAModule(
+      num_centroids=0, use_xyz=True
+      (mlp): SharedMLP(
+        (0): Conv2d(
+          (conv): Conv2d(259, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (1): Conv2d(
+          (conv): Conv2d(256, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (2): Conv2d(
+          (conv): Conv2d(512, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+      )
+    )
+  )
+  (fp_modules): ModuleList(
+    (0): PointnetFPModule(
+      (mlp): SharedMLP(
+        (0): Conv1d(
+          (conv): Conv1d(1280, 256, kernel_size=(1,), stride=(1,), bias=False)
+          (bn): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (1): Conv1d(
+          (conv): Conv1d(256, 256, kernel_size=(1,), stride=(1,), bias=False)
+          (bn): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+      )
+    )
+    (1): PointnetFPModule(
+      (mlp): SharedMLP(
+        (0): Conv1d(
+          (conv): Conv1d(384, 256, kernel_size=(1,), stride=(1,), bias=False)
+          (bn): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (1): Conv1d(
+          (conv): Conv1d(256, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (bn): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+      )
+      (interpolator): FeatureInterpolator(num_neighbours=3, eps=1e-10)
+    )
+    (2): PointnetFPModule(
+      (mlp): SharedMLP(
+        (0): Conv1d(
+          (conv): Conv1d(192, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (bn): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (1): Conv1d(
+          (conv): Conv1d(128, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (bn): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+      )
+      (interpolator): FeatureInterpolator(num_neighbours=3, eps=1e-10)
+    )
+    (3): PointnetFPModule(
+      (mlp): SharedMLP(
+        (0): Conv1d(
+          (conv): Conv1d(128, 64, kernel_size=(1,), stride=(1,), bias=False)
+          (bn): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (1): Conv1d(
+          (conv): Conv1d(64, 64, kernel_size=(1,), stride=(1,), bias=False)
+          (bn): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (2): Conv1d(
+          (conv): Conv1d(64, 64, kernel_size=(1,), stride=(1,), bias=False)
+          (bn): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+      )
+      (interpolator): FeatureInterpolator(num_neighbours=3, eps=1e-10)
+    )
+  )
+  (mlp_seg): SharedMLP(
+    dropout_prob=0.5
+    (0): Conv1d(
+      (conv): Conv1d(64, 128, kernel_size=(1,), stride=(1,), bias=False)
+      (bn): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (relu): ReLU(inplace=True)
+    )
+  )
+  (seg_logit): Conv1d(128, 3, kernel_size=(1,), stride=(1,))
+  (mlp_R): SharedMLP(
+    (0): Conv1d(
+      (conv): Conv1d(64, 128, kernel_size=(1,), stride=(1,), bias=False)
+      (bn): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (relu): ReLU(inplace=True)
+    )
+  )
+  (R_logit): Conv1d(128, 6, kernel_size=(1,), stride=(1,))
+  (mlp_t): SharedMLP(
+    (0): Conv1d(
+      (conv): Conv1d(64, 128, kernel_size=(1,), stride=(1,), bias=False)
+      (bn): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (relu): ReLU(inplace=True)
+    )
+  )
+  (t_logit): Conv1d(128, 3, kernel_size=(1,), stride=(1,))
+  (mlp_movable): SharedMLP(
+    dropout_prob=0.5
+    (0): Conv1d(
+      (conv): Conv1d(64, 128, kernel_size=(1,), stride=(1,), bias=False)
+      (bn): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (relu): ReLU(inplace=True)
+    )
+  )
+  (movable_logit): Sequential(
+    (0): Conv1d(128, 5, kernel_size=(1,), stride=(1,))
+    (1): Sigmoid()
+  )
+)
+2025-06-16 15:07:14,376 tdgpd.trainer INFO: No checkpoint found. Initializing model from scratch
