@@ -7,3 +7,7 @@ data
 outputs
 
 *__pycache__
+
+tdgpd/datasets
+tdgpd/functions
+tdgpd/models
