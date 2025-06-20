@@ -128,7 +128,7 @@ class TorchPrecomputedSingleViewPointCloud(PointCloud):
 
     def _find_match(self, scene: TorchContactScenePointCloud):
         # TODO: hard code max frame here
-        point_frame_index = np.ones([self.points_num, 10], dtype=np.int) * -1
+        point_frame_index = np.ones([self.points_num, 10], dtype=int) * -1
         global_to_local = []
         frame_point_index = []
         kd_tree = scene.kd_tree
@@ -170,7 +170,7 @@ class TorchPrecomputedSingleViewPointCloud(PointCloud):
         self.pre_search_score = np.concatenate(search_score, axis=0)
         self.pre_antipodal_score = np.concatenate(antipodal_score, axis=0)
         self.point_frame_index = point_frame_index
-        self.frame_point_index = np.concatenate(frame_point_index, axis=0).astype(np.int)
+        self.frame_point_index = np.concatenate(frame_point_index, axis=0).astype(int)
 
     def run_score(self, scene: TorchContactScenePointCloud):
         self._find_match(scene)

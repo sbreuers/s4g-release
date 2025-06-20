@@ -15,7 +15,8 @@ from grasp_proposal.utils.logger import setup_logger, MetricLogger
 
 
 def load_static_data_batch():
-    single_training_data = np.load("/home/sim/project/s4g/2638_view_0.p", allow_pickle=True)
+    #single_training_data = np.load("/data/inference/2638_view_0.p", allow_pickle=True)
+    single_training_data = np.load("/data/inference/last_pointcloud_big.p", allow_pickle=True)
     cloud_array = single_training_data["point_cloud"]
     cloud = CloudPreProcessor(open3d.geometry.PointCloud(open3d.utility.Vector3dVector(cloud_array.T)), False)
 

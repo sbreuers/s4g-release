@@ -60,7 +60,7 @@ def hash_color(color: tuple):
 
 def hash_original_color(original_color: tuple):
     assert len(original_color) == 3
-    color = tuple((np.round(np.array(original_color), ROUND_FACTOR) * 10 ** ROUND_FACTOR).astype(np.int))
+    color = tuple((np.round(np.array(original_color), ROUND_FACTOR) * 10 ** ROUND_FACTOR).astype(int))
     return hash_color(color)
 
 

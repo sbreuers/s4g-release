@@ -47,7 +47,7 @@ def main():
         frame = frame[valid_index]
         search_score = search_score[valid_index]
         antipodal_score = antipodal_score[valid_index]
-        frame_point_index = frame_point_index[valid_index].astype(np.int)
+        frame_point_index = frame_point_index[valid_index].astype(int)
         frame_num = frame.shape[0]
 
         pc = open3d.geometry.PointCloud()
@@ -66,7 +66,7 @@ def main():
         frame_point_index_list = []
         search_score_list = []
         antipodal_score_list = []
-        point_frame_num = np.zeros(point_num, dtype=np.int)
+        point_frame_num = np.zeros(point_num, dtype=int)
 
         def check_single_collision(j):
             result = 9999
@@ -123,8 +123,8 @@ def main():
         # score = np.zeros([cloud.shape[0]])
         # point_frame = np.zeros([cloud.shape[0], 4, 4])
         # color = np.zeros([cloud.shape[0], 3])
-        # point_frame_index = np.ones(cloud.shape[0], dtype=np.int) * -1
-        # frame_point_index = frame_point_index.astype(np.int)
+        # point_frame_index = np.ones(cloud.shape[0], dtype=int) * -1
+        # frame_point_index = frame_point_index.astype(int)
         # for i in range(frame.shape[0]):
         #     i = int(i)
         #     if score[frame_point_index[i]] < point_score[i]:

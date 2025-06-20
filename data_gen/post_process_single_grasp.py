@@ -11,7 +11,7 @@ color_map = cm.get_cmap('jet', 256)
 
 FRAME_PER_POINT = 1
 MAX_NEIGHBOR_FRAME = 1
-MIN_SEARCH_SCORE = 40
+MIN_SEARCH_SCORE = 0
 
 WIDTH_SEARCH = [0]
 HEIGHT_SEARCH = [0]
@@ -29,7 +29,7 @@ def inverse_batch_pose(poses):
 # Should tune: coke
 
 def main():
-    object_names = ["camera"]
+    object_names = ["Lager"]
     data_dir = "../objects/single_object_grasp"
     output_dir = "../objects/processed_single_object_grasp"
     for object_name in object_names:
@@ -48,7 +48,9 @@ def main():
         homo_cloud = np.concatenate([cloud.T, np.ones([1, point_num])])
 
         # Min search reduce
+        #print("search_score ", search_score)
         valid_index = np.nonzero(search_score > MIN_SEARCH_SCORE)[0]
+        print("valid_index.shape ", valid_index.shape)
         frame = frame[valid_index]
         search_score = search_score[valid_index]
         antipodal_score = antipodal_score[valid_index]
@@ -62,6 +64,9 @@ def main():
 
         # Compute normalized point score
         point_score = np.minimum(np.log(search_score + 1) / 3, np.ones(1)) * antipodal_score
+        print("point_score: ", point_score)
+        print("point_score min: ", np.min(point_score))
+        print("point_score max: ", np.max(point_score))
         point_score = (point_score - np.min(point_score)) / (np.max(point_score) - np.min(point_score))
         assert len(point_score.shape) == 1
 
@@ -99,9 +104,14 @@ def main():
 
             return result
 
-        for i in range(point_num):
-            if not check_single_collision(i):
+        num_collision = 0
+        print("point_num", point_num)
+        print("frame", frame.shape)
+        for i in range(len(valid_index)): #range(point_num):
+            if not check_single_collision(i) or point_score[i] < 0.5:
+                num_collision += 1
                 continue
+            #print(point_score[i])
 
             point_frame_index = np.nonzero((frame_point_index == i))[0]
             if len(point_frame_index) > FRAME_PER_POINT:
@@ -132,6 +142,7 @@ def main():
             {"grasp_pose": inverse_batch_pose(final_frame), 'grasp_point_index': final_index, 'cloud': cloud,
              'normal': normal})
 
+        print(f'num_collision: {num_collision}')
         print('After filtering: it has {} frames'.format(final_index.shape[0]))
 
         with open(output_path, 'wb') as f:

@@ -10,9 +10,10 @@ create_box = open3d.geometry.TriangleMesh.create_box
 
 
 def get_hand_geometry(T_global_to_local, color=(0.1, 0.6, 0.3)):
-    back_hand = create_box(height=2 * config.HALF_BOTTOM_WIDTH,
+    back_hand = create_box(width=config.BOTTOM_LENGTH - config.BACK_COLLISION_MARGIN,
+                           height=2 * config.HALF_BOTTOM_WIDTH,
                            depth=config.HALF_HAND_THICKNESS * 2,
-                           width=config.BOTTOM_LENGTH - config.BACK_COLLISION_MARGIN)
+                           )
     # back_hand = open3d.geometry.TriangleMesh.create_cylinder(height=0.1, radius=0.02)
 
     temp_trans = np.eye(4)

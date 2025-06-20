@@ -13,9 +13,13 @@ from tqdm import trange
 import sklearn.metrics
 
 GASKET_RADIUS = 0.012
-COS_THR = 0.95
+COS_THR = 0.99
 THETA_SEARCH = list(range(0, 360, 30))
 THETA_NUM = len(THETA_SEARCH)
+
+COLLISION_POINT_THRESHOLD = 1 # 50
+
+POINT_VOXEL_SIZE = 0.003 # 0.004
 
 
 class GenerateContactObjectData:
@@ -51,9 +55,12 @@ class GenerateContactObjectData:
             data_dict = {}
             ply_path = os.path.join(self.model_dir, "{}.obj".format(name))
             mesh = open3d.io.read_triangle_mesh(ply_path)
+            mesh.scale(1/1000.0, center=mesh.get_center())
             mesh.compute_vertex_normals()
             pc = mesh.sample_points_uniformly(np.asarray(mesh.vertices).shape[0] * 10)
-            pc = pc.voxel_down_sample(0.004)
+            print("after sampling", pc)
+            pc = pc.voxel_down_sample(POINT_VOXEL_SIZE)
+            print("after voxelizing", pc)
 
             points = np.asarray(pc.points)
             normals = np.asarray(pc.normals)
@@ -63,7 +70,9 @@ class GenerateContactObjectData:
             pc.normals = open3d.utility.Vector3dVector(normals)
 
             data_dict.update({'cloud': points, 'normal': normals})
+            
             valid_row, valid_column, all_antipodal_score = self.cache_contact_pair(points, normals)
+            print(f"valid_row.shape: {valid_row.shape}, valid_column.shape: {valid_column.shape}, antipodal_score.shape: {all_antipodal_score.shape}")
 
             frames, local_search_scores, antipodal_score = self._estimate_grasp_quality(points, valid_row, valid_column,
                                                                                         all_antipodal_score)
@@ -73,11 +82,16 @@ class GenerateContactObjectData:
                 {"global_to_local": frames, "search_score": local_search_scores, "antipodal_score": antipodal_score})
             data_dict.update({'frame_point_index': frame_neighbor_index})
 
+            print(f"stored cloud and normal of shape {points.shape} points, {normals.shape} normals")
+            print(f"stored global_to_local of shape {format(frames.shape)}")
+            print(f"stored local_search_scores of shape {local_search_scores.shape}")
+            print(f"stored antipodal_score of shape {antipodal_score.shape}")
+            print(f"stored frame_point_index of shape {frame_neighbor_index.shape}")
             print("Finish {} with time: {}s".format(name, time() - tic))
             self.dump(data_dict, name)
 
     def get_frame_neighbor(self, frames, kd_tree):
-        frame_neighbor_index = np.ones(frames.shape[0], dtype=np.int) * -1
+        frame_neighbor_index = np.ones(frames.shape[0], dtype=int) * -1
         for j in range(frames.shape[0]):
             local_to_global = np.linalg.inv(frames[j])
             frame_center = local_to_global[0:3, 3]
@@ -101,6 +115,9 @@ class GenerateContactObjectData:
         return smooth_normals
 
     def cache_contact_pair(self, points, normals):
+        print(points.shape)
+        #import sys
+        #sys.exit()
         dist = sklearn.metrics.pairwise_distances(points)
         within_distance_bool = dist < config.HALF_BOTTOM_SPACE * 2
         distance_vector = -points[:, np.newaxis, :] + points[np.newaxis, :, :]
@@ -157,6 +174,7 @@ class GenerateContactObjectData:
             self.check_collision(torch_points_homo, T_global_to_local[i, :, :], valid_frame_search_scores,
                                  valid_frame, row, col, antipodal_score[i], valid_frame_antipodal_scores)
         assert len(valid_frame_search_scores) == len(valid_frame)
+        print('After filtering the collision {} remain'.format(len(valid_frame_antipodal_scores)))
 
         valid_frame_search_scores = torch.tensor(valid_frame_search_scores)
         valid_frame = torch.stack(valid_frame, dim=0)
@@ -170,7 +188,8 @@ class GenerateContactObjectData:
 
         close_plane_bool = (local_cloud[1, :] < config.HALF_BOTTOM_SPACE) & \
                            (local_cloud[1, :] > -config.HALF_BOTTOM_SPACE)
-        if torch.sum(close_plane_bool) < 50:
+        if torch.sum(close_plane_bool) < COLLISION_POINT_THRESHOLD:
+            #print('Too few points on the finger plane')
             return
 
         left_finger_plane_bool = (local_cloud[1, :] < config.HALF_BOTTOM_WIDTH) & \
@@ -197,21 +216,25 @@ class GenerateContactObjectData:
                 back_collision_bool = back_collision_bool_x & z_collision_bool & back_plane_bool
 
                 if torch.sum(back_collision_bool) > config.BACK_COLLISION_THRESHOLD:
+                    #print('Back collision')
                     continue
 
                 finger_collision_bool = finger_collision_bool_x & z_collision_bool & finger_plane_bool
                 if torch.sum(finger_collision_bool) > config.FINGER_COLLISION_THRESHOLD:
+                    #print('Finger collision')
                     continue
 
                 close_region_bool = finger_collision_bool_x & close_plane_bool & z_collision_bool
                 close_region_num = torch.sum(close_region_bool, dtype=torch.float)
 
-                if close_region_num < 50:
+                if close_region_num < COLLISION_POINT_THRESHOLD:
+                    #print('Too few points in the close region')
                     continue
 
                 accumulate_search_scores += close_region_num / 3
 
-            if accumulate_search_scores < 50 or close_region_num < 50:
+            if accumulate_search_scores < COLLISION_POINT_THRESHOLD or close_region_num < COLLISION_POINT_THRESHOLD:
+                #print('Too few points in the search region or close region')
                 continue
 
             frame_scores.append(torch.min(accumulate_search_scores, close_region_num))
@@ -226,7 +249,7 @@ def main():
     output_dir = "../objects/single_object_grasp"
     os.makedirs(output_dir, exist_ok=True)
     gen = GenerateContactObjectData(model_dir=model_dir, output_dir=output_dir)
-    object_names = ["camera"]
+    object_names = ["Lager"]
     gen.run_loop(object_names)
 
 

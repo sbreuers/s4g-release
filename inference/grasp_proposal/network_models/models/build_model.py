@@ -11,6 +11,7 @@ from .EdgePointNet2DownUp import build_edgepointnet2downup
 
 
 def build_model(cfg):
+    print("cfg.MODEL.TYPE:", cfg.MODEL.TYPE)
     if cfg.MODEL.TYPE == "GPD":
         net, loss_func, metric = build_gpd(cfg)
     elif cfg.MODEL.TYPE == "PointNetGPD":
@@ -26,6 +27,6 @@ def build_model(cfg):
     elif cfg.MODEL.TYPE == "EDGEPN2DU":
         net, loss_func, metric = build_edgepointnet2downup(cfg)
     else:
-        raise ValueError("Unknown model: {}.".format(cfg.MODEL.MODEL))
+        raise ValueError("Unknown model: {}.".format(cfg.MODEL))
 
     return net, loss_func, metric

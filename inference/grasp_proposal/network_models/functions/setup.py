@@ -1,6 +1,9 @@
 from setuptools import setup
 from torch.utils.cpp_extension import BuildExtension, CUDAExtension
 
+import torch
+print(torch.cuda.is_available())
+
 extra_compile_args = {'cxx': ['-g'],'D_GLIBCXX_USE_CXX11_ABI': ['1'],
                       'nvcc': ['-O2']}
 

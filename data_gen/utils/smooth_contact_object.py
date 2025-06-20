@@ -56,7 +56,7 @@ def main():
         frame_point_index_list = []
         search_score_list = []
         antipodal_score_list = []
-        point_frame_num = np.zeros(point_num, dtype=np.int)
+        point_frame_num = np.zeros(point_num, dtype=int)
 
         for i in range(point_num):
             point_frame_index = np.nonzero((frame_point_index == i))[0]
@@ -104,8 +104,8 @@ def main():
         # score = np.zeros([cloud.shape[0]])
         # point_frame = np.zeros([cloud.shape[0], 4, 4])
         # color = np.zeros([cloud.shape[0], 3])
-        # point_frame_index = np.ones(cloud.shape[0], dtype=np.int) * -1
-        # frame_point_index = frame_point_index.astype(np.int)
+        # point_frame_index = np.ones(cloud.shape[0], dtype=int) * -1
+        # frame_point_index = frame_point_index.astype(int)
         # for i in range(frame.shape[0]):
         #     i = int(i)
         #     if score[frame_point_index[i]] < point_score[i]:

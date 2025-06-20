@@ -8,8 +8,8 @@ color_map = cm.get_cmap('jet', 256)
 
 
 def main():
-    data_dir = "../objects/processed_single_object_grasp"
-    object_names = ["camera"]
+    data_dir = "objects/processed_single_object_grasp"
+    object_names = ["Lager"]
     for object_name in object_names:
         data_path = os.path.join(data_dir, '{}.pkl'.format(object_name))
 
@@ -34,26 +34,28 @@ def main():
 
         pc.colors = open3d.utility.Vector3dVector(color)
 
-        while True:
-            from utils.visualization_utils import get_hand_geometry
-            vis = open3d.visualization.VisualizerWithEditing()
-            vis.create_window()
-            vis.add_geometry(pc)
-            vis.run()
-            vis.destroy_window()
-            pick_inds = vis.get_picked_points()
-            vis_list = [pc]
-            for ind in pick_inds:
-                if ind in grasp_point_index:
-                    frame_index = grasp_point_index.index(ind)
-                    grasp = np.linalg.inv(grasp_pose[frame_index])
-                    print(grasp_pose[frame_index])
-                    hand = get_hand_geometry(grasp)
-                    ball = open3d.geometry.TriangleMesh.create_sphere(0.0015)
-                    ball.translate(cloud[ind, :])
-                    vis_list.extend(hand)
-                    vis_list.append(ball)
-            open3d.visualization.draw_geometries(vis_list)
+        #while True:
+        from utils.visualization_utils import get_hand_geometry
+        vis = open3d.visualization.VisualizerWithEditing()
+        vis.create_window()
+        vis.add_geometry(pc)
+        vis.run()
+        vis.destroy_window()
+        pick_inds = vis.get_picked_points()
+        vis_list = [pc]
+        for ind in range(cloud.shape[0]):#pick_inds:
+            if ind in grasp_point_index:
+                frame_index = grasp_point_index.index(ind)
+                grasp = np.linalg.inv(grasp_pose[frame_index])
+                print(grasp_pose[frame_index])
+                hand = get_hand_geometry(grasp)
+                ball = open3d.geometry.TriangleMesh.create_sphere(0.0015)
+                ball.translate(cloud[ind, :])
+                vis_list.extend(hand)
+                vis_list.append(ball)
+            else:
+                print("Not grasp point")
+        open3d.visualization.draw_geometries(vis_list)
         #
 
 
