@@ -36,7 +36,7 @@ _C.DATA.TRAIN = CN()
 _C.DATA.TRAIN.ROOT_DIR = "/data/tdgpd/datasets/bearring/train"
 
 _C.DATA.VAL = CN()
-_C.DATA.VAL.ROOT_DIR = "/data/tdgpd/datasets/bearring/val"
+_C.DATA.VAL.ROOT_DIR = "/data/tdgpd/datasets/bearring/train"
 _C.DATA.VAL.NUM_GRASP = 300
 
 _C.DATA.TEST = CN()
@@ -120,7 +120,7 @@ _C.SOLVER.Adam.betas = (0.9, 0.999)
 # Scheduler (learning rate schedule)
 # ---------------------------------------------------------------------------- #
 _C.SCHEDULER = CN()
-_C.SCHEDULER.MAX_EPOCH = 2
+_C.SCHEDULER.MAX_EPOCH = 100
 
 _C.SCHEDULER.TYPE = "StepLR"
 
@@ -140,11 +140,11 @@ _C.TRAIN = CN()
 _C.TRAIN.BATCH_SIZE = 1
 
 # The period to save a checkpoint
-_C.TRAIN.CHECKPOINT_PERIOD = 1
+_C.TRAIN.CHECKPOINT_PERIOD = 10
 _C.TRAIN.LOG_PERIOD = 10
 _C.TRAIN.FILE_LOG_PERIOD = 1000
 # The period to validate
-_C.TRAIN.VAL_PERIOD = 1
+_C.TRAIN.VAL_PERIOD = 10
 # Data augmentation. The format is "method" or ("method", *args)
 # For example, ("PointCloudRotate", ("PointCloudRotatePerturbation",0.1, 0.2))
 _C.TRAIN.AUGMENTATION = ()
