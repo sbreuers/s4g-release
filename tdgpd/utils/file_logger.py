@@ -178,24 +178,6 @@ def file_logger(data_batch, preds, step, output_dir, prefix="", with_label=True)
         open3d.io.write_point_cloud(osp.join(step_dir, "pred_pts.ply"), pcd)
         np.savetxt(osp.join(step_dir, "pred_scene_score.txt"), scene_pred, fmt="%.4f")
 
-        movable_logits = preds["movable_logits"][0]
-        movable_logits = F.softmax(movable_logits, dim=0).detach().cpu().numpy()[1]
-        if with_label:
-            movable_labels = data_batch["scene_movable_labels"][0].cpu().numpy().astype(np.float)
-            print("Movable points: ", np.sum(np.max(movable_labels, axis=0)))
-            for direction in range(movable_labels.shape[0]):
-                gt_color = np.zeros((scene_points.shape[0], 3))
-                for i in range(gt_color.shape[0]):
-                    gt_color[i, :] = cmap(movable_labels[direction, i])[:3]
-                pcd.colors = open3d.utility.Vector3dVector(gt_color)
-                open3d.io.write_point_cloud(osp.join(step_dir, "gt_movable_dir{}.ply".format(direction)), pcd)
-
-        gt_color = np.zeros((scene_points.shape[0], 3))
-        for i in range(gt_color.shape[0]):
-            gt_color[i, :] = cmap(movable_logits[i])[:3]
-        pcd.colors = open3d.utility.Vector3dVector(gt_color)
-        open3d.io.write_point_cloud(osp.join(step_dir, "pred_movable.ply"), pcd)
-
         if not with_label:  # save top frames for real experiments
             from tdgpd.eval_experiment.eval_point_cloud import EvalExpCloud
             from tdgpd.eval_experiment.torch_scene_point_cloud import TorchScenePointCloud
@@ -203,11 +185,8 @@ def file_logger(data_batch, preds, step, output_dir, prefix="", with_label=True)
             view_cloud.points = open3d.utility.Vector3dVector(scene_points)
             evaluation_point_cloud = EvalExpCloud(view_cloud)
 
-            K = 50
+            K = 10
             top_ind = np.argsort(-scene_pred)[:K]
-            # movable = movable_logits[top_ind] > 0.5
-            # top_ind = top_ind[movable]
-
 
             top_H = []
             score = []
@@ -245,7 +224,7 @@ def file_logger(data_batch, preds, step, output_dir, prefix="", with_label=True)
                 top_H = np.stack(top_H, axis=0)
                 np.save("top_frames.npy", top_H)
             else:
-                print("### No viable frames in top 50. ###")
+                print("### No viable frames in top 10. ###")
             return (top_H, score)
 
     print("saving finished")
