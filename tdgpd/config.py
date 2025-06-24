@@ -124,8 +124,8 @@ _C.SCHEDULER.MAX_EPOCH = 100
 _C.SCHEDULER.TYPE = "StepLR"
 
 _C.SCHEDULER.StepLR = CN()
-_C.SCHEDULER.StepLR.step_size = 1
-_C.SCHEDULER.StepLR.gamma = 0.1
+_C.SCHEDULER.StepLR.step_size = 20
+_C.SCHEDULER.StepLR.gamma = 0.5
 
 _C.SCHEDULER.MultiStepLR = CN()
 _C.SCHEDULER.MultiStepLR.milestones = ()
