@@ -41,7 +41,6 @@ class PointNet2(nn.Module):
                  fp_channels=((256, 256), (256, 128), (128, 128), (64, 64, 64)),
                  num_fp_neighbours=(0, 3, 3, 3),
                  seg_channels=(128,),
-                 num_removal_directions=5,
                  dropout_prob=0.5):
         super(PointNet2, self).__init__()
 
@@ -90,11 +89,6 @@ class PointNet2(nn.Module):
         self.mlp_t = SharedMLP(feature_channels, seg_channels, ndim=1)
         self.t_logit = nn.Conv1d(seg_channels[-1], 3, 1, bias=True)
 
-        self.mlp_movable = SharedMLP(feature_channels, seg_channels, ndim=1, dropout_prob=dropout_prob)
-        self.movable_logit = nn.Sequential(
-            nn.Conv1d(seg_channels[-1], num_removal_directions, 1, bias=True),
-            nn.Sigmoid())
-
         self.init_weights()
 
     def forward(self, data_batch):
@@ -136,13 +130,10 @@ class PointNet2(nn.Module):
 
         t = points + t
 
-        mov = self.mlp_movable(sparse_feature)
-        mov = self.movable_logit(mov)
 
         preds = {"scene_score_logits": logits,
                  "frame_R": R,
                  "frame_t": t,
-                 "movable_logits": mov,
                  }
 
         return preds
@@ -164,10 +155,6 @@ class PointNet2Loss(nn.Module):
         score_classes = scene_score_logits.shape[1]
         weight = torch.ones(score_classes, device=scene_score_logits.device)
         weight[0] = self.neg_weight
-
-        movable_logits = preds["movable_logits"]
-        movable_labels = labels["scene_movable_labels"]
-        mov_loss = F.l1_loss(movable_logits, movable_labels)
 
         scene_score_labels = labels["scene_score_labels"]  # (B, N)
 
@@ -206,7 +193,6 @@ class PointNet2Loss(nn.Module):
                      "R_loss": R_loss,
                      # "norm_loss": norm_loss,
                      "t_loss": t_loss,
-                     "mov_loss": mov_loss,
                      }
 
         return loss_dict
@@ -223,12 +209,6 @@ class PointNet2Metric(nn.Module):
         scene_score_labels = scene_score_labels.view(-1)
 
         cls_acc = selected_preds.eq(scene_score_labels).float()
-
-        movable_logits = preds["movable_logits"]
-        movable_labels = labels["scene_movable_labels"]
-        movable_preds = (movable_logits > 0.5).view(-1).int()
-        movable_labels = movable_labels.view(-1).int()
-        mov_acc = movable_preds.eq(movable_labels).float()
 
         gt_frame_R = labels["best_frame_R"]
         batch_size, _, num_frame_points = gt_frame_R.shape
@@ -252,7 +232,6 @@ class PointNet2Metric(nn.Module):
         t_err = torch.mean(torch.sqrt(((gt_frame_t - pred_frame_t) ** 2).sum(1)))
 
         return {"cls_acc": cls_acc,
-                "mov_acc": mov_acc,
                 "R_err": angle_min,
                 "t_err": t_err,
                 }

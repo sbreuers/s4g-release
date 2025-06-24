@@ -71,8 +71,6 @@ def train_model(model,
     total_iteration = data_loader.dataset.__len__()
     cls_logits = []
     cls_labels = []
-    mov_logits = []
-    mov_labels = []
     for iteration, data_batch in enumerate(data_loader):
         data_batch = {k: v.cuda() for k, v in data_batch.items() if isinstance(v, torch.Tensor)}
         data_time = time.time() - end
@@ -80,15 +78,10 @@ def train_model(model,
         preds = model(data_batch)
         for k, v in preds.items():
             if "logits" in k:
-                if "movable" in k:
-                    mov_logits.append(v.detach().cpu().numpy())
-                else:
-                    cls_logits.append(v.detach().cpu().numpy())
+                cls_logits.append(v.detach().cpu().numpy())
 
         for k, v in data_batch.items():
             if "labels" in k:
-                if "movable" in k:
-                    mov_labels.append(v.cpu().numpy())
                 if "scene_score_logits" in preds.keys() and "scene_score_labels" in k:
                     cls_labels.append(v.cpu().numpy())
                 if "local_search_logits" in preds.keys() and "scored_grasp_labels" in k:
@@ -169,53 +162,6 @@ def train_model(model,
                 i, np.sum(gt), precision * 100, recall * 100
             ))
 
-    if len(mov_logits) > 0:
-        mov_logits = np.concatenate(mov_logits, axis=0)
-        # preds = np.argmax(mov_logits, axis=1)
-        preds = (mov_logits > 0.5).astype(int)
-        mov_labels = np.concatenate(mov_labels, axis=0).astype(int)
-        for i in range(2):
-            pred = preds == i
-            gt = mov_labels == i
-            true_pos = np.logical_and(pred, gt)
-            if np.sum(pred) == 0:
-                precision = recall = 0
-            else:
-                precision = np.sum(true_pos).astype(float) / max(np.sum(pred).astype(float), 1e-4)
-                recall = np.sum(true_pos).astype(float) / max(np.sum(gt).astype(float), 1e-4)
-            logger.info("Movable Class {}: number: {}, precision: {:.2f}%, recall: {:.2f}%".format(
-                i, np.sum(gt), precision * 100, recall * 100
-            ))
-
-    # if len(mov_logits.shape) == 2:
-    #     score_classes = mov_logits.shape[-1]
-    #     for i in range(score_classes):
-    #         pred = preds == i
-    #         gt = mov_labels == i
-    #         true_pos = np.logical_and(pred, gt)
-    #         if np.sum(pred) == 0:
-    #             precision = recall = 0
-    #         else:
-    #             precision = np.sum(true_pos).astype(float) / max(np.sum(pred).astype(float), 1e-4)
-    #             recall = np.sum(true_pos).astype(float) / max(np.sum(gt).astype(float), 1e-4)
-    #         logger.info("Movable Class {}: number: {}, precision: {:.2f}%, recall: {:.2f}%".format(
-    #             i, np.sum(gt), precision * 100, recall * 100
-    #         ))
-    # else:
-    #     score_classes = mov_logits.shape[1]
-    #     for i in range(score_classes):
-    #         pred = preds == i
-    #         gt = mov_labels == i
-    #         true_pos = np.logical_and(pred, gt)
-    #         if np.sum(pred) == 0:
-    #             precision = recall = 0
-    #         else:
-    #             precision = np.sum(true_pos).astype(float) / max(np.sum(pred).astype(float), 1e-4)
-    #             recall = np.sum(true_pos).astype(float) / max(np.sum(gt).astype(float), 1e-4)
-    #         logger.info("Movable Class {}: number: {}, precision: {:.2f}%, recall: {:.2f}%".format(
-    #             i, np.sum(gt), precision * 100, recall * 100
-    #         ))
-
     return meters
 
 
@@ -237,8 +183,6 @@ def validate_model(model,
     total_iteration = data_loader.dataset.__len__()
     cls_logits = []
     cls_labels = []
-    mov_logits = []
-    mov_labels = []
 
     with torch.no_grad():
         for iteration, data_batch in enumerate(data_loader):
@@ -248,15 +192,10 @@ def validate_model(model,
             preds = model(data_batch)
             for k, v in preds.items():
                 if "logits" in k:
-                    if "movable" in k:
-                        mov_logits.append(v.detach().cpu().numpy())
-                    else:
-                        cls_logits.append(v.detach().cpu().numpy())
+                    cls_logits.append(v.detach().cpu().numpy())
 
             for k, v in data_batch.items():
                 if "labels" in k:
-                    if "movable" in k:
-                        mov_labels.append(v.cpu().numpy())
                     if "scene_score_logits" in preds.keys() and "scene_score_labels" in k:
                         cls_labels.append(v.cpu().numpy())
                     if "local_search_logits" in preds.keys() and "scored_grasp_labels" in k:
@@ -325,23 +264,6 @@ def validate_model(model,
                 precision = np.sum(true_pos).astype(float) / max(np.sum(pred).astype(float), 1e-4)
                 recall = np.sum(true_pos).astype(float) / max(np.sum(gt).astype(float), 1e-4)
             logger.info("Class {}: number: {}, precision: {:.2f}%, recall: {:.2f}%".format(
-                i, np.sum(gt), precision * 100, recall * 100
-            ))
-
-    if len(mov_logits) > 0:
-        mov_logits = np.concatenate(mov_logits, axis=0)
-        preds = (mov_logits > 0.5).astype(int)
-        mov_labels = np.concatenate(mov_labels, axis=0).astype(int)
-        for i in range(2):
-            pred = preds == i
-            gt = mov_labels == i
-            true_pos = np.logical_and(pred, gt)
-            if np.sum(pred) == 0:
-                precision = recall = 0
-            else:
-                precision = np.sum(true_pos).astype(float) / max(np.sum(pred).astype(float), 1e-4)
-                recall = np.sum(true_pos).astype(float) / max(np.sum(gt).astype(float), 1e-4)
-            logger.info("Movable Class {}: number: {}, precision: {:.2f}%, recall: {:.2f}%".format(
                 i, np.sum(gt), precision * 100, recall * 100
             ))
 

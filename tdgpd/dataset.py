@@ -300,7 +300,6 @@ class YCBScenesContact(Dataset):
                  score_classes=2,
                  num_points=102400,
                  score_func=RobustScoreFunc,
-                 distance_threshold=0.05,
                  std_R=0.0,
                  std_t=0.0, ):
         super(YCBScenesContact, self).__init__()
@@ -311,7 +310,6 @@ class YCBScenesContact(Dataset):
         self.num_points = num_points
         self.num_frame_points = num_points // 8
         self.score_func = score_func()
-        self.distance_threshold = distance_threshold
 
         self.std_R = std_R
         self.std_t = std_t
@@ -329,10 +327,7 @@ class YCBScenesContact(Dataset):
         point_cloud = data["point_cloud"]
         frame_index = data["valid_index"]
         valid_frame = data["valid_frame"]
-        direction = data["direction"]
-        movable = (direction > self.distance_threshold).astype(np.float)
         objects_label = data["objects_label"]  # (N, )
-        scene_point_movable = movable[objects_label]
         num_frame = search_score.shape[0]
         if num_frame == 0:
             print("No valid frame in ", path)
@@ -384,8 +379,6 @@ class YCBScenesContact(Dataset):
         scored_scene_point_labels = np.concatenate([scored_scene_point_labels[frame_point_inds],
                                                     np.zeros_like(remain_point_inds)])
 
-        scene_point_movable = np.concatenate([scene_point_movable[frame_point_inds],
-                                              np.zeros((remain_point_inds.shape[0], scene_point_movable.shape[1]))])
         scored_scene_points = np.concatenate([scored_scene_points[frame_point_inds], np.zeros_like(remain_point_inds)])
         chosen_inds = np.concatenate([frame_index, remain_point_inds])
         scene_points = point_cloud[:, chosen_inds]
@@ -394,7 +387,6 @@ class YCBScenesContact(Dataset):
 
         return {
             "scene_points": torch.tensor(scene_points).float(),
-            "scene_movable_labels": torch.tensor(scene_point_movable).transpose(0, 1).float(),
             "scene_score_labels": torch.tensor(scored_scene_point_labels).long(),
             "scene_score": torch.tensor(scored_scene_points).float(),
             "frame_index": torch.tensor(np.arange(self.num_frame_points)).long(),
