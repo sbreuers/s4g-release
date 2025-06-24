@@ -357,7 +357,7 @@ class YCBScenesContact(Dataset):
         num_point_in_data = point_cloud.shape[1]
 
         scored_scene_points = np.minimum(np.log(search_score + 1) / 4, np.ones([1])) * antipodal_score \
-                              / np.sqrt(1 - np.power(antipodal_score, 2))+1e-4
+                              / (np.sqrt(1 - np.power(antipodal_score, 2))+1e-4)
 
         scored_scene_point_labels = np.sum(scored_scene_points[:, np.newaxis] > self.score_grad[np.newaxis, :], axis=1)
 
