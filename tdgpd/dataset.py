@@ -301,7 +301,8 @@ class YCBScenesContact(Dataset):
                  num_points=102400,
                  score_func=RobustScoreFunc,
                  std_R=0.0,
-                 std_t=0.0, ):
+                 std_t=0.0,
+                 std_noise=0.0, ):
         super(YCBScenesContact, self).__init__()
         self.root_dir = Path(root_dir)
         self.mode = mode
@@ -313,6 +314,7 @@ class YCBScenesContact(Dataset):
 
         self.std_R = std_R
         self.std_t = std_t
+        self.std_noise = std_noise
 
         self.path_list = sorted(self.root_dir.files("*.p"))
         logger = logging.getLogger('tdgpd.dataset')
@@ -384,6 +386,8 @@ class YCBScenesContact(Dataset):
         scene_points = point_cloud[:, chosen_inds]
 
         scene_points = np.dot(H[:3, :3], scene_points) + H[:3, 3:4]
+        if self.std_noise > 0:
+            scene_points = scene_points + np.random.normal(0, self.std_noise, scene_points.shape)
 
         return {
             "scene_points": torch.tensor(scene_points).float(),
@@ -669,6 +673,7 @@ def build_data_loader(cfg, mode="train"):
                 num_points=cfg.DATA.NUM_POINTS,
                 std_R=cfg.DATA.STD_R,
                 std_t=cfg.DATA.STD_T,
+                std_noise=cfg.DATA.STD_NOISE,
             )
         elif mode == "val":
             dataset = YCBScenesContact(

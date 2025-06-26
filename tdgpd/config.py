@@ -4,7 +4,7 @@ from yacs.config import load_cfg
 _C = CN()
 
 # if set to @, the filename of config will be used by default
-_C.OUTPUT_DIR = "/data/tdgpd/datasets/output"
+_C.OUTPUT_DIR = "/data/tdgpd/datasets/output_office_bearing"
 # Automatically resume weights from last checkpoints
 _C.AUTO_RESUME = False
 # For reproducibility...but not really because modern fast GPU libraries use
@@ -24,8 +24,9 @@ _C.DATA.SCORE_CLASSES = 2
 
 _C.DATA.TYPE = "CONTACT" # Scene, Grasp, CONTACT
 
-_C.DATA.STD_R = 0.1
-_C.DATA.STD_T = 0.02
+_C.DATA.STD_R = 0.0
+_C.DATA.STD_T = 0.0
+_C.DATA.STD_NOISE = 0.001
 
 _C.DATA.NUM_POINTS = 25600
 _C.DATA.NUM_CLOSE_REGION_POINTS = 1024
@@ -88,7 +89,7 @@ _C.MODEL.PN2.NUM_FP_NEIGHBOURS = (0, 3, 3, 3)
 _C.MODEL.PN2.SEG_CHANNELS = (128,)
 _C.MODEL.PN2.DROPOUT_PROB = 0.5
 _C.MODEL.PN2.LABEL_SMOOTHING = 0.0
-_C.MODEL.PN2.NEG_WEIGHT = 1.0
+_C.MODEL.PN2.NEG_WEIGHT = 0.1
 
 # ---------------------------------------------------------------------------- #
 # Solver (optimizer)
@@ -119,12 +120,12 @@ _C.SOLVER.Adam.betas = (0.9, 0.999)
 # Scheduler (learning rate schedule)
 # ---------------------------------------------------------------------------- #
 _C.SCHEDULER = CN()
-_C.SCHEDULER.MAX_EPOCH = 100
+_C.SCHEDULER.MAX_EPOCH = 500
 
 _C.SCHEDULER.TYPE = "StepLR"
 
 _C.SCHEDULER.StepLR = CN()
-_C.SCHEDULER.StepLR.step_size = 20
+_C.SCHEDULER.StepLR.step_size = 50
 _C.SCHEDULER.StepLR.gamma = 0.5
 
 _C.SCHEDULER.MultiStepLR = CN()
@@ -136,14 +137,14 @@ _C.SCHEDULER.MultiStepLR.gamma = 0.1
 # ---------------------------------------------------------------------------- #
 _C.TRAIN = CN()
 
-_C.TRAIN.BATCH_SIZE = 1
+_C.TRAIN.BATCH_SIZE = 16
 
 # The period to save a checkpoint
-_C.TRAIN.CHECKPOINT_PERIOD = 10
-_C.TRAIN.LOG_PERIOD = 10
+_C.TRAIN.CHECKPOINT_PERIOD = 100
+_C.TRAIN.LOG_PERIOD = 50
 _C.TRAIN.FILE_LOG_PERIOD = 1000
 # The period to validate
-_C.TRAIN.VAL_PERIOD = 10
+_C.TRAIN.VAL_PERIOD = 200
 # Data augmentation. The format is "method" or ("method", *args)
 # For example, ("PointCloudRotate", ("PointCloudRotatePerturbation",0.1, 0.2))
 _C.TRAIN.AUGMENTATION = ()
@@ -159,7 +160,7 @@ _C.TEST.BATCH_SIZE = 1
 
 # The path of weights to be tested. "@" has similar syntax as OUTPUT_DIR.
 # If not set, the last checkpoint will be used by default.
-_C.TEST.WEIGHT = ""
+_C.TEST.WEIGHT = "/data/tdgpd/datasets/output_office_bearing/model_best.pth"
 
 # Data augmentation.
 _C.TEST.AUGMENTATION = ()
