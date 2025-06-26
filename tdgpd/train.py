@@ -127,7 +127,7 @@ def train_model(model,
                                            prefix="train")
 
         # in training store files using epoch index
-        if curr_epoch % file_log_period == 0:
+        if curr_epoch > 0 and curr_epoch % file_log_period == 0:
             file_logger_cls(data_batch, preds, curr_epoch * total_iteration + (iteration + 1) * batch_size, output_dir,
                             prefix="train")
     cls_logits = np.concatenate(cls_logits, axis=0)
@@ -340,7 +340,7 @@ def train(cfg, output_dir=""):
         # validate
         if val_period < 1:
             continue
-        if cur_epoch % val_period == 0 or cur_epoch == max_epoch:
+        if (cur_epoch > 0 and cur_epoch % val_period == 0) or cur_epoch == max_epoch-1:
             val_meters = validate_model(model,
                                         loss_fn,
                                         metric_fn,
