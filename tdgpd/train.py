@@ -126,7 +126,8 @@ def train_model(model,
             tensorboard_logger.add_scalars(metric_dict, curr_epoch * total_iteration + (iteration + 1) * batch_size,
                                            prefix="train")
 
-        if iteration % file_log_period == 0:
+        # in training store files using epoch index
+        if curr_epoch % file_log_period == 0:
             file_logger_cls(data_batch, preds, curr_epoch * total_iteration + (iteration + 1) * batch_size, output_dir,
                             prefix="train")
     cls_logits = np.concatenate(cls_logits, axis=0)
@@ -229,6 +230,7 @@ def validate_model(model,
                                                curr_epoch * total_iteration + (iteration + 1) * batch_size,
                                                prefix="valid")
 
+            # in validation store files using iteration index
             if iteration % file_log_period == 0:
                 file_logger_cls(data_batch, preds, curr_epoch * total_iteration + (iteration + 1) * batch_size,
                                 output_dir,
