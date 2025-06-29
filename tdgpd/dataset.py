@@ -289,7 +289,7 @@ class YCBScenes(Dataset):
 
 
 class YCBScenesContact(Dataset):
-    score_grad_dict = {2: np.array([1 / 1.5]),
+    score_grad_dict = {2: np.array([0.9]),
                        3: np.array([3, 6.0]),
                        4: np.array([0.25, 1 / 1.5, 1.1])
                        }
