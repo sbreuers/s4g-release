@@ -309,7 +309,7 @@ class YCBScenesContact(Dataset):
         self.score_classes = score_classes
         self.score_grad = self.score_grad_dict[score_classes]
         self.num_points = num_points
-        self.num_frame_points = num_points // 8
+        self.num_frame_points = num_points // 100
         self.score_func = score_func()
 
         self.std_R = std_R
