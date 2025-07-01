@@ -289,7 +289,7 @@ class YCBScenes(Dataset):
 
 
 class YCBScenesContact(Dataset):
-    score_grad_dict = {2: np.array([0.9]),
+    score_grad_dict = {2: np.array([1 / 1.5]),
                        3: np.array([3, 6.0]),
                        4: np.array([0.25, 1 / 1.5, 1.1])
                        }
@@ -330,7 +330,7 @@ class YCBScenesContact(Dataset):
         frame_index = data["valid_index"]
         valid_frame = data["valid_frame"]
         objects_label = data["objects_label"]  # (N, )
-        num_frame = search_score.shape[0]
+        num_frame = antipodal_score.shape[0]
         if num_frame == 0:
             print("No valid frame in ", path)
             os.system("rm {}".format(path))
@@ -358,8 +358,9 @@ class YCBScenesContact(Dataset):
 
         num_point_in_data = point_cloud.shape[1]
 
-        scored_scene_points = np.minimum(np.log(search_score + 1) / 4, np.ones([1])) * antipodal_score \
-                              / (np.sqrt(1 - np.power(antipodal_score, 2))+1e-4)
+        #scored_scene_points = np.minimum(np.log(search_score + 1) / 4, np.ones([1])) * antipodal_score \
+        #                      / (np.sqrt(1 - np.power(antipodal_score, 2))+1e-4)
+        scored_scene_points = antipodal_score
 
         scored_scene_point_labels = np.sum(scored_scene_points[:, np.newaxis] > self.score_grad[np.newaxis, :], axis=1)
 
