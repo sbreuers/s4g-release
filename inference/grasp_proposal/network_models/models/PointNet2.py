@@ -256,9 +256,9 @@ def build_pointnet2(cfg):
     loss_func = PointNet2Loss(
         label_smoothing=cfg.MODEL.PN2.LABEL_SMOOTHING,
         neg_weight=cfg.MODEL.PN2.NEG_WEIGHT,
-        r_weight= cfg.MODEL.PN2.LOSS.R_WEIGHT,
-        t_weight=cfg.MODEL.PN2.LOSS.T_WEIGHT,
-        cls_weight=cfg.MODEL.PN2.LOSS.CLS_WEIGHT,
+        r_weight= cfg.MODEL.PN2.R_LOSS_WEIGHT,
+        t_weight=cfg.MODEL.PN2.T_LOSS_WEIGHT,
+        cls_weight=cfg.MODEL.PN2.CLS_LOSS_WEIGHT,
     )
     metric = PointNet2Metric()
 
