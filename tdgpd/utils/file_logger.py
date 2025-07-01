@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 #from tdgpd.utils.io_utils import mkdir
 import time
 
-def file_logger(data_batch, preds, step, output_dir, prefix="", with_label=True):
+def file_logger(data_batch, preds, step, output_dir, prefix="", with_label=True, with_ply_files=False, with_top_frames=False):
     step_dir = osp.join(output_dir, "{}_step{:05d}".format(prefix, step))
     #mkdir(step_dir)
     os.makedirs(step_dir, exist_ok=True)
@@ -70,40 +70,83 @@ def file_logger(data_batch, preds, step, output_dir, prefix="", with_label=True)
             gt_frame_t = data_batch["best_frame_t"][0].transpose(0, 1).detach().cpu().numpy().astype(np.float)
             np.savetxt(osp.join(step_dir, "gt_frame_t.txt"), gt_frame_t, fmt="%.4f")
 
-        pcd = open3d.geometry.PointCloud()
-        pcd.points = open3d.utility.Vector3dVector(scene_points)
-
         score_classes = scene_score_logits.shape[1]
         score = np.linspace(0, 1, score_classes + 1)[:-1][np.newaxis, :]
         scene_pred = np.sum(score * scene_score_logits, axis=1)
+        # scene_pred = scene_pred / np.max(scene_pred)
+        np.savetxt(osp.join(step_dir, "pred_scene_score.txt"), scene_pred, fmt="%.4f")
 
-        color_grad = 1024
-        cmap = plt.get_cmap("jet", color_grad)
-        if with_label:
-            gt_color = np.zeros((scene_points.shape[0], 3))
-            scene_score = scene_score_labels / score_classes
-            for i in range(gt_color.shape[0]):
-                gt_color[i, :] = cmap(scene_score[i])[:3]
-            pcd.colors = open3d.utility.Vector3dVector(gt_color)
+        if with_ply_files:
+            pcd = open3d.geometry.PointCloud()
+            pcd.points = open3d.utility.Vector3dVector(scene_points)
+            color_grad = 1024
+            cmap = plt.get_cmap("jet", color_grad)
+            if with_label:
+                gt_color = np.zeros((scene_points.shape[0], 3))
+                scene_score = scene_score_labels / score_classes
+                for i in range(gt_color.shape[0]):
+                    gt_color[i, :] = cmap(scene_score[i])[:3]
+                pcd.colors = open3d.utility.Vector3dVector(gt_color)
 
-            open3d.io.write_point_cloud(osp.join(step_dir, "gt_pts.ply"), pcd)
+                open3d.io.write_point_cloud(osp.join(step_dir, "gt_pts.ply"), pcd)
+
+                points = []
+                color = []
+                triangles = []
+                for i, j in enumerate(np.arange(0, num_frame_points - 1, 2)):
+                    points.append(scene_points[j, :])
+                    points.append(gt_frame_t[j, :] * 0.5 + scene_points[j, :] * 0.5 + np.array([0.0001, 0.0001, 0.0001]))
+                    points.append(gt_frame_t[j, :])
+                    points.append(gt_frame_t[j, :])
+                    points.append(gt_frame_t[j, :] + gt_frame_R[j, :, 0] * 0.01 + gt_frame_R[j, :, 1] * 0.001)
+                    points.append(gt_frame_t[j, :] + gt_frame_R[j, :, 0] * 0.01)
+                    points.append(gt_frame_t[j, :])
+                    points.append(gt_frame_t[j, :] + gt_frame_R[j, :, 1] * 0.01 + gt_frame_R[j, :, 2] * 0.001)
+                    points.append(gt_frame_t[j, :] + gt_frame_R[j, :, 1] * 0.01)
+                    points.append(gt_frame_t[j, :])
+                    points.append(gt_frame_t[j, :] + gt_frame_R[j, :, 2] * 0.01 + gt_frame_R[j, :, 0] * 0.001)
+                    points.append(gt_frame_t[j, :] + gt_frame_R[j, :, 2] * 0.01)
+                    color.append([1, 0, 0])
+                    color.append([1, 0, 0])
+                    color.append([1, 0, 0])
+                    color.append([0, 1, 0])
+                    color.append([0, 1, 0])
+                    color.append([0, 1, 0])
+                    color.append([1, 1, 0])
+                    color.append([1, 1, 0])
+                    color.append([1, 1, 0])
+                    color.append([0, 0, 1])
+                    color.append([0, 0, 1])
+                    color.append([0, 0, 1])
+                    # triangles.append([12 * i, 12 * i + 1, 12 * i + 2])
+                    # triangles.append([12 * i + 3, 12 * i + 4, 12 * i + 5])
+                    triangles.append([12 * i + 6, 12 * i + 7, 12 * i + 8])
+                    # triangles.append([12 * i + 9, 12 * i + 10, 12 * i + 11])
+
+                points = np.stack(points)
+                color = np.stack(color)
+                mesh = open3d.geometry.TriangleMesh()
+                mesh.vertices = open3d.utility.Vector3dVector(points)
+                mesh.vertex_colors = open3d.utility.Vector3dVector(color)
+                mesh.triangles = open3d.utility.Vector3iVector(triangles)
+                open3d.io.write_triangle_mesh(osp.join(step_dir, "gt_frame.ply"), mesh)
 
             points = []
             color = []
             triangles = []
-            for i, j in enumerate(np.arange(0, num_frame_points - 1, 2)):
+            for i, j in enumerate(np.arange(0, scene_points.shape[0], 2)):
                 points.append(scene_points[j, :])
-                points.append(gt_frame_t[j, :] * 0.5 + scene_points[j, :] * 0.5 + np.array([0.0001, 0.0001, 0.0001]))
-                points.append(gt_frame_t[j, :])
-                points.append(gt_frame_t[j, :])
-                points.append(gt_frame_t[j, :] + gt_frame_R[j, :, 0] * 0.01 + gt_frame_R[j, :, 1] * 0.001)
-                points.append(gt_frame_t[j, :] + gt_frame_R[j, :, 0] * 0.01)
-                points.append(gt_frame_t[j, :])
-                points.append(gt_frame_t[j, :] + gt_frame_R[j, :, 1] * 0.01 + gt_frame_R[j, :, 2] * 0.001)
-                points.append(gt_frame_t[j, :] + gt_frame_R[j, :, 1] * 0.01)
-                points.append(gt_frame_t[j, :])
-                points.append(gt_frame_t[j, :] + gt_frame_R[j, :, 2] * 0.01 + gt_frame_R[j, :, 0] * 0.001)
-                points.append(gt_frame_t[j, :] + gt_frame_R[j, :, 2] * 0.01)
+                points.append(pred_frame_t[j, :] * 0.5 + scene_points[j, :] * 0.5 + np.array([0.0001, 0.0001, 0.0001]))
+                points.append(pred_frame_t[j, :])
+                points.append(pred_frame_t[j, :])
+                points.append(pred_frame_t[j, :] + pred_frame_R[j, :, 0] * 0.01 + pred_frame_R[j, :, 1] * 0.001)
+                points.append(pred_frame_t[j, :] + pred_frame_R[j, :, 0] * 0.01)
+                points.append(pred_frame_t[j, :])
+                points.append(pred_frame_t[j, :] + pred_frame_R[j, :, 1] * 0.01 + pred_frame_R[j, :, 2] * 0.001)
+                points.append(pred_frame_t[j, :] + pred_frame_R[j, :, 1] * 0.01)
+                points.append(pred_frame_t[j, :])
+                points.append(pred_frame_t[j, :] + pred_frame_R[j, :, 2] * 0.01 + pred_frame_R[j, :, 0] * 0.001)
+                points.append(pred_frame_t[j, :] + pred_frame_R[j, :, 2] * 0.01)
                 color.append([1, 0, 0])
                 color.append([1, 0, 0])
                 color.append([1, 0, 0])
@@ -127,58 +170,15 @@ def file_logger(data_batch, preds, step, output_dir, prefix="", with_label=True)
             mesh.vertices = open3d.utility.Vector3dVector(points)
             mesh.vertex_colors = open3d.utility.Vector3dVector(color)
             mesh.triangles = open3d.utility.Vector3iVector(triangles)
-            open3d.io.write_triangle_mesh(osp.join(step_dir, "gt_frame.ply"), mesh)
+            open3d.io.write_triangle_mesh(osp.join(step_dir, "pred_frame.ply"), mesh)
 
-        points = []
-        color = []
-        triangles = []
-        for i, j in enumerate(np.arange(0, scene_points.shape[0], 2)):
-            points.append(scene_points[j, :])
-            points.append(pred_frame_t[j, :] * 0.5 + scene_points[j, :] * 0.5 + np.array([0.0001, 0.0001, 0.0001]))
-            points.append(pred_frame_t[j, :])
-            points.append(pred_frame_t[j, :])
-            points.append(pred_frame_t[j, :] + pred_frame_R[j, :, 0] * 0.01 + pred_frame_R[j, :, 1] * 0.001)
-            points.append(pred_frame_t[j, :] + pred_frame_R[j, :, 0] * 0.01)
-            points.append(pred_frame_t[j, :])
-            points.append(pred_frame_t[j, :] + pred_frame_R[j, :, 1] * 0.01 + pred_frame_R[j, :, 2] * 0.001)
-            points.append(pred_frame_t[j, :] + pred_frame_R[j, :, 1] * 0.01)
-            points.append(pred_frame_t[j, :])
-            points.append(pred_frame_t[j, :] + pred_frame_R[j, :, 2] * 0.01 + pred_frame_R[j, :, 0] * 0.001)
-            points.append(pred_frame_t[j, :] + pred_frame_R[j, :, 2] * 0.01)
-            color.append([1, 0, 0])
-            color.append([1, 0, 0])
-            color.append([1, 0, 0])
-            color.append([0, 1, 0])
-            color.append([0, 1, 0])
-            color.append([0, 1, 0])
-            color.append([1, 1, 0])
-            color.append([1, 1, 0])
-            color.append([1, 1, 0])
-            color.append([0, 0, 1])
-            color.append([0, 0, 1])
-            color.append([0, 0, 1])
-            # triangles.append([12 * i, 12 * i + 1, 12 * i + 2])
-            # triangles.append([12 * i + 3, 12 * i + 4, 12 * i + 5])
-            triangles.append([12 * i + 6, 12 * i + 7, 12 * i + 8])
-            # triangles.append([12 * i + 9, 12 * i + 10, 12 * i + 11])
+            pred_color = np.zeros((scene_points.shape[0], 3))
+            for i in range(pred_color.shape[0]):
+                pred_color[i, :] = cmap(scene_pred[i])[:3]
+            pcd.colors = open3d.utility.Vector3dVector(pred_color)
+            open3d.io.write_point_cloud(osp.join(step_dir, "pred_pts.ply"), pcd)
 
-        points = np.stack(points)
-        color = np.stack(color)
-        mesh = open3d.geometry.TriangleMesh()
-        mesh.vertices = open3d.utility.Vector3dVector(points)
-        mesh.vertex_colors = open3d.utility.Vector3dVector(color)
-        mesh.triangles = open3d.utility.Vector3iVector(triangles)
-        open3d.io.write_triangle_mesh(osp.join(step_dir, "pred_frame.ply"), mesh)
-
-        pred_color = np.zeros((scene_points.shape[0], 3))
-        # scene_pred = scene_pred / np.max(scene_pred)
-        for i in range(pred_color.shape[0]):
-            pred_color[i, :] = cmap(scene_pred[i])[:3]
-        pcd.colors = open3d.utility.Vector3dVector(pred_color)
-        open3d.io.write_point_cloud(osp.join(step_dir, "pred_pts.ply"), pcd)
-        np.savetxt(osp.join(step_dir, "pred_scene_score.txt"), scene_pred, fmt="%.4f")
-
-        if not with_label:  # save top frames for real experiments
+        if not with_label and with_top_frames:  # save top frames for real experiments
             from tdgpd.eval_experiment.eval_point_cloud import EvalExpCloud
             from tdgpd.eval_experiment.torch_scene_point_cloud import TorchScenePointCloud
             view_cloud = open3d.geometry.PointCloud()
@@ -226,5 +226,7 @@ def file_logger(data_batch, preds, step, output_dir, prefix="", with_label=True)
             else:
                 print("### No viable frames in top 10. ###")
             return (top_H, score)
+        else:
+            return [], []
 
     print("saving finished")

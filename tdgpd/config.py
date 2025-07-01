@@ -29,8 +29,8 @@ _C.DATA.STD_T = 0.0
 _C.DATA.STD_NOISE = 0.001
 
 _C.DATA.NUM_POINTS = 25600
-_C.DATA.NUM_CLOSE_REGION_POINTS = 1024
-_C.DATA.GPD_IN_CHANNELS = 3
+_C.DATA.NUM_CLOSE_REGION_POINTS = 1024 # UNUSED IN CONTACT
+_C.DATA.GPD_IN_CHANNELS = 3 # UNUSED IN CONTACT
 
 _C.DATA.TRAIN = CN()
 _C.DATA.TRAIN.ROOT_DIR = "/data/tdgpd/datasets/bearring/train"
@@ -90,6 +90,9 @@ _C.MODEL.PN2.SEG_CHANNELS = (128,)
 _C.MODEL.PN2.DROPOUT_PROB = 0.5
 _C.MODEL.PN2.LABEL_SMOOTHING = 0.0
 _C.MODEL.PN2.NEG_WEIGHT = 0.1
+_C.MODEL.PN2.LOSS.R_WEIGHT = 5.0
+_C.MODEL.PN2.LOSS.T_WEIGHT = 20.0
+_C.MODEL.PN2.LOSS.CLS_WEIGHT = 1.0
 
 # ---------------------------------------------------------------------------- #
 # Solver (optimizer)
@@ -160,7 +163,8 @@ _C.TEST.BATCH_SIZE = 1
 
 # The path of weights to be tested. "@" has similar syntax as OUTPUT_DIR.
 # If not set, the last checkpoint will be used by default.
-_C.TEST.WEIGHT = "/data/tdgpd/datasets/output_office_bearing/model_best.pth"
+_C.TEST.WEIGHT = "/data/tdgpd/datasets/output_office_bearing/model_best_wo.pth"
+_C.TEST.INPUT = "/data/tdgpd/datasets/example_pointclouds/last_pointcloud_wo.npy"
 
 # Data augmentation.
 _C.TEST.AUGMENTATION = ()

@@ -8,17 +8,20 @@ import sys
 import open3d
 
 sys.path.insert(0, osp.dirname(__file__) + '/..')
+sys.path.append('/data/')
 
 import torch
 import torch.nn as nn
+import numpy as np
 
 from tdgpd.config import load_cfg_from_file
 from tdgpd.utils.logger import setup_logger
-from tdgpd.models.build_model import build_model
+#from tdgpd.models.build_model import build_model
+from inference.grasp_proposal.network_models.models.build_model import build_model
 from tdgpd.utils.checkpoint import CheckPointer
 from tdgpd.dataset import build_data_loader
 from tdgpd.utils.metric_logger import MetricLogger
-from tdgpd.utils.file_logger_cls import file_logger
+from tdgpd.utils.file_logger import file_logger
 
 
 def parse_args():
@@ -55,7 +58,9 @@ def test_model(model,
         data_batch = {k: v.cuda(non_blocking=True) for k, v in data_batch.items() if isinstance(v, torch.Tensor)}
         data_time = time.time() - end
         end = time.time()
+        inference_time =  time.time()
         preds = model(data_batch)
+        print(f"single inference time: {(time.time() - inference_time):.4f}s")
         batch_time = time.time() - end
         with open("inference_time_{}.txt".format("ours"), "a+") as f:
             f.write("{:.4f}\n".format(batch_time * 1000.0))
@@ -72,7 +77,7 @@ def test_model(model,
             )
         )
 
-        top_H, score = file_logger(data_batch, preds, 0, output_dir, prefix="test", with_label=False)
+        top_H, score = file_logger(data_batch, preds, 0, output_dir, prefix="test", with_label=False, with_ply_files=False, with_top_frames=False)
 
     return top_H, score
 
@@ -102,7 +107,7 @@ def test(cfg, data_batch, output_dir):
     logger.info("Test forward time: {:.2f}s".format(test_time))
 
 
-def main(data_batch):
+def main():
     args = parse_args()
     num_gpus = torch.cuda.device_count()
 
@@ -125,24 +130,34 @@ def main(data_batch):
     logger.info("Loaded configuration file {}".format(args.config_file))
     logger.info("Running with config:\n{}".format(cfg))
 
-    test(cfg, data_batch, output_dir)
-
-
-if __name__ == "__main__":
-    import numpy as np
-
-    point = open3d.io.read_point_cloud("/home/rayc/Projects/3DGPD/processed_pcd.ply")
+    #point = open3d.io.read_point_cloud("/home/sbreuers/vathos/s4g-release/tdgpd/datasets/example_pointclouds/test.ply")
     # point = open3d.io.read_point_cloud("/home/rayc/Projects/3DGPD/outputs/pn2_negweight1.0_deeper_val/"
     #                                    "valid_step00001/pred_pts.ply")
-    point = np.asarray(point.points)
+    #point = np.asarray(point.points)
+    #point = np.load("/data/tdgpd/datasets/example_pointclouds/test.npy")
+    #point = np.load("/data/tdgpd/datasets/example_pointclouds/last_pointcloud.npy")
+    input_path = cfg.TEST.INPUT
+    # check file extension of input path
 
-    # a = np.load("/home/rayc/Projects/3DGPD/data/ycb_data/training_data/87_view_0.p", allow_pickle=True)
-    # point = a["point_cloud"].T
-    rand_ind = np.random.choice(np.arange(point.shape[0]), 25600, replace=False)
+    if input_path.endswith(".ply"):
+        point = open3d.io.read_point_cloud(input_path)
+        point = np.asarray(point.points)
+    elif input_path.endswith(".npy"):
+        point = np.load(input_path)
+    elif input_path.endswith(".p"):
+        point = np.load(input_path, allow_pickle=True)
+        point = point["point_cloud"].T
+    print(f"Loaded input point {input_path} with shape: {point.shape}")
+    rand_ind = np.random.choice(np.arange(point.shape[0]), cfg.DATA.NUM_POINTS, replace=False)
     point = point[rand_ind, :]
     point = torch.tensor(point.T).float().unsqueeze(0)
     # point = np.load("/home/rayc/Projects/3DGPD/point.npy")
     # point = torch.tensor(point)
 
     data_batch = {"scene_points": point}
-    main(data_batch)
+
+    test(cfg, data_batch, output_dir)
+
+
+if __name__ == "__main__":
+    main()

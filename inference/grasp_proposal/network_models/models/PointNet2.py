@@ -145,10 +145,13 @@ class PointNet2(nn.Module):
 
 
 class PointNet2Loss(nn.Module):
-    def __init__(self, label_smoothing=0, neg_weight=0.1):
+    def __init__(self, label_smoothing=0, neg_weight=0.1, r_weight=5.0, t_weight=20.0, cls_weight=1.0):
         super(PointNet2Loss, self).__init__()
         self.label_smoothing = label_smoothing
         self.neg_weight = neg_weight
+        self.r_weight = r_weight
+        self.t_weight = t_weight
+        self.cls_weight = cls_weight
 
     def forward(self, preds, labels):
         scene_score_logits = preds["scene_score_logits"]  # (B, C, N2)
@@ -179,20 +182,20 @@ class PointNet2Loss(nn.Module):
 
         # weight loss according to gt_score
         gt_scene_score = labels["scene_score"][:, :num_frame_points]
-        R_loss = (R_loss * gt_scene_score).mean() * 5.0
+        R_loss = (R_loss * gt_scene_score).mean()
         # gt_norm = torch.stack([gt_frame_R[:, 0, :], gt_frame_R[:, 3, :], gt_frame_R[:, 6, :]], dim=1)
         # pred_norm = torch.stack([pred_frame_R[:, 0, :], pred_frame_R[:, 3, :], pred_frame_R[:, 6, :]], dim=1)
         # norm_loss = torch.mean((pred_norm - gt_norm) ** 2)
 
         gt_frame_t = labels["best_frame_t"]
         pred_frame_t = preds["frame_t"][:, :, :num_frame_points]
-        t_loss = torch.mean(((pred_frame_t - gt_frame_t) ** 2).sum(1) * gt_scene_score) * 20.0
+        t_loss = torch.mean(((pred_frame_t - gt_frame_t) ** 2).sum(1) * gt_scene_score)
         # t_loss = F.cross_entropy(pred_frame_t, gt_frame_t) * 0.2
 
-        loss_dict = {"cls_loss": cls_loss,
-                     "R_loss": R_loss,
+        loss_dict = {"cls_loss": cls_loss * self.cls_weight,
+                     "R_loss": R_loss * self.r_weight,
                      # "norm_loss": norm_loss,
-                     "t_loss": t_loss,
+                     "t_loss": t_loss * self.t_weight,
                      }
 
         return loss_dict
@@ -253,6 +256,9 @@ def build_pointnet2(cfg):
     loss_func = PointNet2Loss(
         label_smoothing=cfg.MODEL.PN2.LABEL_SMOOTHING,
         neg_weight=cfg.MODEL.PN2.NEG_WEIGHT,
+        r_weight= cfg.MODEL.PN2.LOSS.R_WEIGHT,
+        t_weight=cfg.MODEL.PN2.LOSS.T_WEIGHT,
+        cls_weight=cfg.MODEL.PN2.LOSS.CLS_WEIGHT,
     )
     metric = PointNet2Metric()
 
